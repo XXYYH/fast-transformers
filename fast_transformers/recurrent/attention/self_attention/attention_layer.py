@@ -10,7 +10,7 @@ leaving the implementation of the attention to the inner attention module."""
 
 from torch.nn import Linear, Module
 
-from ....events import EventDispatcher
+from ....events import EventDispatcher, QKVEvent
 from ..._utils import check_state
 
 
@@ -85,6 +85,8 @@ class RecurrentAttentionLayer(Module):
         query = self.query_projection(query).view(N, L, H, -1)
         key = self.key_projection(key).view(N, S, H, -1)
         value = self.value_projection(value).view(N, S, H, -1)
+
+        self.event_dispatcher.dispatch(QKVEvent(self, query, key, value))
 
         # Reshape them into many heads and compute the attention
         new_value, state = self.inner_attention(
