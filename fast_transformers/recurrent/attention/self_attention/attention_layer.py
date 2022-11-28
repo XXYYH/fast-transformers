@@ -92,7 +92,9 @@ class RecurrentAttentionLayer(Module):
             key,
             value,
             state
-        ).view(N, L, -1)
+        )
+
+        new_value = new_value.view(N, L, -1)
 
         # Project the output and return
         return self.out_projection(new_value), state
