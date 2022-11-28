@@ -78,20 +78,21 @@ class RecurrentAttentionLayer(Module):
         state = check_state(state, memory)
 
         # Project the queries/keys/values
-        query = self.query_projection(query)
-        key = self.key_projection(key)
-        value = self.value_projection(value)
+        N, L, _ = query.shape
+        _, S, _ = key.shape
+        H = self.n_heads
+
+        query = self.query_projection(query).view(N, L, H, -1)
+        key = self.key_projection(key).view(N, S, H, -1)
+        value = self.value_projection(value).view(N, S, H, -1)
 
         # Reshape them into many heads and compute the attention
-        N, D = query.shape
-        H = self.n_heads
         new_value, state = self.inner_attention(
-            query.view(N, H, -1),
-            key.view(N, H, -1),
-            value.view(N, H, -1),
+            query,
+            key,
+            value,
             state
-        )
-        new_value = new_value.view(N, -1)
+        ).view(N, L, -1)
 
         # Project the output and return
         return self.out_projection(new_value), state
